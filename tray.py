@@ -9,8 +9,8 @@ gi.require_version('Gtk', '3.0')
 gi.require_version('XApp', '1.0')
 from gi.repository import Gtk, XApp
 
-SPEAKERS_MODE = _("Speakers")
-HEADPHONES_MODE = _("Headphone")
+SPEAKERS_MODE=("Speakers")
+HEADPHONES_MODE=("Headphone")
 MODE = "Headphone"
 
 def get_output(commands):
@@ -26,16 +26,17 @@ class Tray:
         self.icon = XApp.StatusIcon()
         self.icon.set_name("SBZ")
 
-        # todo get card number from amixer
-        card='1'
-        # Find GPU name
+        card = subprocess.check_output("aplay -l | grep Creative", shell=True).decode("UTF-8").strip().split(": ")[0]
+        card=card[card.__len__()-1]
+        
+        
         output = None
         try:
             output = subprocess.check_output("amixer -c "+card+" sget 'Output Select' | grep -i 'Item0'", shell=True).decode("UTF-8").strip().split(": ")[1]
         except:
             pass
 
-        # Find active mode
+        
         speakers = Gtk.MenuItem(label=("Switch to: %s") % SPEAKERS_MODE)
         speakers.connect("activate", self.switch, SPEAKERS_MODE, card)
 
@@ -43,7 +44,7 @@ class Tray:
         headphones = Gtk.MenuItem(label=("Switch to: %s") % HEADPHONES_MODE)
         headphones.connect("activate", self.switch, HEADPHONES_MODE, card)
 
-        #active_output = get_output("/usr/bin/amixer -c "+card+" sget 'Output Select' | grep -i 'Item0'").decode("UTF-8").strip().split(": ")[1]
+        
         active_output=output
         if (active_output == "'Speakers'"):
             self.icon.set_icon_name("audio-speakers")
