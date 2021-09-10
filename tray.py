@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 from gi.repository import Gtk, XApp
-import gettext
 import gi
 import subprocess
 from packaging import version
@@ -11,7 +10,7 @@ from gi.repository import Gtk, XApp
 
 SPEAKERS_MODE=("Speakers")
 HEADPHONES_MODE=("Headphone")
-MODE = "Headphone"
+
 
 def get_output(commands):
     process = subprocess.Popen(commands, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
@@ -20,7 +19,7 @@ def get_output(commands):
 
 
 class Tray:
-    
+    MODE = "Headphone"
     def __init__(self):
 
         self.icon = XApp.StatusIcon()
@@ -71,15 +70,15 @@ class Tray:
     def switch(self,args,id, widget, card):
         
             
-            if (MODE == HEADPHONES_MODE):
+            if (self.MODE == HEADPHONES_MODE):
                 subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","'Output Select'", 'Speakers'], shell=True)
                 self.icon.set_icon_name("audio-speakers")
-                MODE=SPEAKERS_MODE
+                self.MODE=SPEAKERS_MODE
                 
-            elif (MODE == SPEAKERS_MODE):
+            elif (self.MODE == SPEAKERS_MODE):
                 subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","'Output Select'", 'Headphone'], shell=True)
                 self.icon.set_icon_name("audio-headphones")
-                MODE=HEADPHONES_MODE
+                self.MODE=HEADPHONES_MODE
                 
             else:
                 self.icon.set_icon_name("dialog-error-symbolic")
