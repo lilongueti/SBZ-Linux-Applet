@@ -72,11 +72,19 @@ class Tray:
             
             if (self.MODE == HEADPHONES_MODE):
                 subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","'Output Select'", 'Speakers'], shell=True)
+                subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","Front", 'on'], shell=True)
+                subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-sink alsa_output.pci-0000_06_00.0.analog-stereo"], shell=True)
+                subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-source alsa_input.pci-0000_06_00.0.analog-stereo"], shell=True)
                 self.icon.set_icon_name("audio-speakers")
                 self.MODE=SPEAKERS_MODE
                 
             elif (self.MODE == SPEAKERS_MODE):
                 subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","'Output Select'", 'Headphone'], shell=True)
+                subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","Front", 'on'], shell=True)
+                #Todo search Card id on pulseaudio
+                subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-sink alsa_output.pci-0000_06_00.0.analog-stereo"], shell=True)
+                subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-source alsa_input.pci-0000_06_00.0.analog-stereo"], shell=True)
+                
                 self.icon.set_icon_name("audio-headphones")
                 self.MODE=HEADPHONES_MODE
                 
