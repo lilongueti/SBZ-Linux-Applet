@@ -2,6 +2,7 @@
 from gi.repository import Gtk, XApp
 import gi
 import subprocess
+import time
 from packaging import version
 
 gi.require_version('Gtk', '3.0')
@@ -59,6 +60,28 @@ class Tray:
         self.icon.set_tooltip_text("%s\n%s" % ("Creative Sound Blaster Z", MODE))
         
         halndler_id=self.icon.connect("activate",self.switch, card)
+        
+        menu = Gtk.Menu()
+        InFX =  "off" not in str(subprocess.check_output("/usr/bin/amixer -c 1 sget 'Enable InFX'", shell=True))
+        ToggleInFX = Gtk.MenuItem(label="Toggle InFX (%s)" % ("ON" if InFX else "OFF"))
+        ToggleInFX.connect("activate", self.toggle_infx, card, ToggleInFX)
+        
+        OutFX =  "off" not in str(subprocess.check_output("/usr/bin/amixer -c 1 sget 'Enable OutFX'", shell=True))
+        ToggleOutFX = Gtk.MenuItem(label="Toggle OutFX (%s)" % ("ON" if OutFX else "OFF"))
+        ToggleOutFX.connect("activate", self.toggle_outfx, card, ToggleOutFX)
+        
+        ResetSC = Gtk.MenuItem(label="Reset SC")
+        ResetSC.connect("activate", self.ResetSC,card)
+        exit = Gtk.MenuItem(label="Exit")
+        exit.connect("activate", self.terminate)        
+        menu.append(ToggleInFX)
+        menu.append(ToggleOutFX)
+        menu.append(ResetSC)
+        menu.append(exit)
+        menu.show_all()
+            
+        #menu.show_all()
+        self.icon.set_secondary_menu(menu)
         self.icon.set_primary_menu(None)
         
 
@@ -66,12 +89,32 @@ class Tray:
 
     def dialog_closed(self, widget, event):
         return Gtk.ResponseType.NO
+    
+    def ResetSC(self, args, card):
+        subprocess.call(executable="/usr/bin/virsh", args=["qemu:///system", "start","ResetSC"], shell=True)
+        time.sleep(4)
+        subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-sink alsa_output.pci-0000_06_00.0.analog-stereo"], shell=True)
+        subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-source alsa_input.pci-0000_06_00.0.analog-stereo"], shell=True)
+
+    def toggle_infx(self, args, card, toggleinfx):
+        subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","'Enable InFX'", 'toggle'], shell=True)
+        infx="ON" if "off" not in str(subprocess.check_output("/usr/bin/amixer -c "+str(card)+" sget 'Enable InFX'", shell=True)) else "OFF"
+        toggleinfx.set_label("Toggle InFX (%s)" %  infx )
+
+    def toggle_outfx(self, args, card, toggleoutfx):
+        subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","'Enable OutFX'", 'toggle'], shell=True)
+        outfx="ON" if "off" not in str(subprocess.check_output("/usr/bin/amixer -c "+str(card)+ " sget 'Enable OutFX'", shell=True)) else "OFF"
+        toggleoutfx.set_label("Toggle OutFX (%s)" %  outfx)
+        
 
     def switch(self,args,id, widget, card):
         
             
             if (self.MODE == HEADPHONES_MODE):
+				#Todo veo la version de la kernel para saber si lo pongo en Surround o Speakers
                 subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","'Output Select'", 'Speakers'], shell=True)
+                #subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","'Output Select'", 'Surround'], shell=True)
+                #subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","'FX: Crystalizer'", '0'], shell=True)
                 subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","Front", 'on'], shell=True)
                 subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-sink alsa_output.pci-0000_06_00.0.analog-stereo"], shell=True)
                 subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-source alsa_input.pci-0000_06_00.0.analog-stereo"], shell=True)
