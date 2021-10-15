@@ -63,11 +63,11 @@ class Tray:
         halndler_id=self.icon.connect("activate",self.switch, card)
         
         menu = Gtk.Menu()
-        InFX =  "off" not in str(subprocess.check_output("/usr/bin/amixer -c 1 sget 'Enable InFX'", shell=True))
+        InFX =  "off" not in str(subprocess.check_output("/usr/bin/amixer -c "+str(card)+" sget 'Enable InFX'", shell=True))
         ToggleInFX = Gtk.MenuItem(label="Toggle InFX (%s)" % ("ON" if InFX else "OFF"))
         ToggleInFX.connect("activate", self.toggle_infx, card, ToggleInFX)
         
-        OutFX =  "off" not in str(subprocess.check_output("/usr/bin/amixer -c 1 sget 'Enable OutFX'", shell=True))
+        OutFX =  "off" not in str(subprocess.check_output("/usr/bin/amixer -c "+str(card)+" sget 'Enable OutFX'", shell=True))
         ToggleOutFX = Gtk.MenuItem(label="Toggle OutFX (%s)" % ("ON" if OutFX else "OFF"))
         ToggleOutFX.connect("activate", self.toggle_outfx, card, ToggleOutFX)
         
@@ -93,13 +93,20 @@ class Tray:
         return Gtk.ResponseType.NO
     
     def ResetSC(self, args, card):
-        subprocess.call(executable="/usr/bin/virsh", args=["qemu:///system", "start","ResetSC"], shell=True)
-        time.sleep(4)
+        #subprocess.call(executable="/usr/bin/virsh", args=["qemu:///system", "start","ResetSC"], shell=True)
+        
+        subprocess.call(executable="sh", args=["pkexec ./ResetSC.sh"], shell=True)
+        time.sleep(3)
         subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-sink alsa_output.pci-0000_06_00.0.analog-stereo"], shell=True)
         subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-source alsa_input.pci-0000_06_00.0.analog-stereo"], shell=True)
         subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","Front", 'on'], shell=True)
         subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-sink alsa_output.pci-0000_06_00.0.analog-stereo"], shell=True)
         subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-source alsa_input.pci-0000_06_00.0.analog-stereo"], shell=True)
+        if (self.MODE == HEADPHONES_MODE):
+                subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","'Output Select'", 'Headphone'], shell=True)
+        elif (self.MODE == SPEAKERS_MODE):
+                subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","'Output Select'", 'Speakers'], shell=True)
+        
 
     def toggle_infx(self, args, card, toggleinfx):
         subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","'Enable InFX'", 'toggle'], shell=True)
@@ -116,10 +123,7 @@ class Tray:
         
             
             if (self.MODE == HEADPHONES_MODE):
-				#Todo veo la version de la kernel para saber si lo pongo en Surround o Speakers
                 subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","'Output Select'", 'Speakers'], shell=True)
-                #subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","'Output Select'", 'Surround'], shell=True)
-                #subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","'FX: Crystalizer'", '0'], shell=True)
                 subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","Front", 'on'], shell=True)
                 subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-sink alsa_output.pci-0000_06_00.0.analog-stereo"], shell=True)
                 subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-source alsa_input.pci-0000_06_00.0.analog-stereo"], shell=True)
@@ -129,7 +133,6 @@ class Tray:
             elif (self.MODE == SPEAKERS_MODE):
                 subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","'Output Select'", 'Headphone'], shell=True)
                 subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","Front", 'on'], shell=True)
-                #Todo search Card id on pulseaudio
                 subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-sink alsa_output.pci-0000_06_00.0.analog-stereo"], shell=True)
                 subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-source alsa_input.pci-0000_06_00.0.analog-stereo"], shell=True)
                 
