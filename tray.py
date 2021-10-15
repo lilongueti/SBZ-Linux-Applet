@@ -95,7 +95,7 @@ class Tray:
     def ResetSC(self, args, card):
         #subprocess.call(executable="/usr/bin/virsh", args=["qemu:///system", "start","ResetSC"], shell=True)
         
-        subprocess.call(executable="sh", args=["pkexec ./ResetSC.sh"], shell=True)
+        subprocess.call(executable="sh", args=["pkexec sh -c 'echo 1 > /sys/bus/pci/devices/0000\:06\:00.0/remove; echo 1 > /sys/bus/pci/rescan'"], shell=True)
         time.sleep(3)
         subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-sink alsa_output.pci-0000_06_00.0.analog-stereo"], shell=True)
         subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-source alsa_input.pci-0000_06_00.0.analog-stereo"], shell=True)
