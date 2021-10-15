@@ -1,11 +1,13 @@
 #!/usr/bin/python3
-from gi.repository import Gtk, XApp
 import gi
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk, XApp
+#import gi
 import subprocess
 import time
 from packaging import version
 
-gi.require_version('Gtk', '3.0')
+#gi.require_version('Gtk', '4.0')
 gi.require_version('XApp', '1.0')
 from gi.repository import Gtk, XApp
 
@@ -48,16 +50,15 @@ class Tray:
         active_output=output
         if (active_output == "'Speakers'"):
             self.icon.set_icon_name("audio-speakers")
-            MODE = SPEAKERS_MODE
+            self.MODE = SPEAKERS_MODE
         elif (active_output == "'Headphone'"):
             self.icon.set_icon_name("audio-headphones")
-            MODE = HEADPHONES_MODE
+            self.MODE = HEADPHONES_MODE
         else:
             self.icon.set_icon_name("dialog-error-symbolic")
-            MODE = ("Unknown mode")
+            self.MODE = ("Unknown mode")
 
-        
-        self.icon.set_tooltip_text("%s\n%s" % ("Creative Sound Blaster Z", MODE))
+        self.icon.set_tooltip_text("%s\n%s" % ("Creative Sound Blaster Z", self.MODE))
         
         halndler_id=self.icon.connect("activate",self.switch, card)
         
@@ -83,6 +84,7 @@ class Tray:
         #menu.show_all()
         self.icon.set_secondary_menu(menu)
         self.icon.set_primary_menu(None)
+        subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","Front", 'on'], shell=True)
         
 
     
@@ -93,6 +95,9 @@ class Tray:
     def ResetSC(self, args, card):
         subprocess.call(executable="/usr/bin/virsh", args=["qemu:///system", "start","ResetSC"], shell=True)
         time.sleep(4)
+        subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-sink alsa_output.pci-0000_06_00.0.analog-stereo"], shell=True)
+        subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-source alsa_input.pci-0000_06_00.0.analog-stereo"], shell=True)
+        subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","Front", 'on'], shell=True)
         subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-sink alsa_output.pci-0000_06_00.0.analog-stereo"], shell=True)
         subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-source alsa_input.pci-0000_06_00.0.analog-stereo"], shell=True)
 
