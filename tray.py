@@ -74,7 +74,7 @@ class Tray:
         ToggleOutFX.connect("activate", self.toggle_outfx, card, ToggleOutFX)
         
         ResetSC = Gtk.MenuItem(label="Reset SC")
-        ResetSC.connect("activate", self.ResetSC,card)
+        ResetSC.connect("activate", self.ResetSC,card, ToggleInFX)
         exit = Gtk.MenuItem(label="Exit")
         exit.connect("activate", self.terminate)        
         menu.append(ToggleInFX)
@@ -94,9 +94,9 @@ class Tray:
     def dialog_closed(self, widget, event):
         return Gtk.ResponseType.NO
     
-    def ResetSC(self, args, card):
+    def ResetSC(self, args, card, toggleinfx):
         #subprocess.call(executable="/usr/bin/virsh", args=["qemu:///system", "start","ResetSC"], shell=True)
-        
+        self.toggle_infx(args, card, toggleinfx)
         subprocess.call(executable="sh", args=["pkexec sh -c 'echo 1 > /sys/bus/pci/devices/"+self.PCIID+"/remove; echo 1 > /sys/bus/pci/rescan'"], shell=True)
         time.sleep(3)
         subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-sink alsa_output.pci-0000_06_00.0.analog-stereo"], shell=True)
@@ -108,6 +108,8 @@ class Tray:
                 subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","'Output Select'", 'Headphone'], shell=True)
         elif (self.MODE == SPEAKERS_MODE):
                 subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","'Output Select'", 'Speakers'], shell=True)
+        subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","'Enable InFX'", 'toggle'], shell=True)
+        toggleinfx.set_label("Toggle InFX (On)" )
         
 
     def toggle_infx(self, args, card, toggleinfx):
