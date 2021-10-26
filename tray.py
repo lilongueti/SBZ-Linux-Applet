@@ -23,10 +23,10 @@ def get_output(commands):
 
 class Tray:
     MODE = "Headphone"
-    PCIID="0000\:06\:00.0"
+    PCIID="0000\:05\:00.0"
     def __init__(self):
         self.PCIID = subprocess.check_output("lspci -D | grep 'Creative Labs'", shell=True).decode("UTF-8").strip().split(" Audio ")[0]
-        self.PCIID=self.PCIID.replace(":","\:")
+        self.PCIID=self.PCIID.replace(":","_")
         self.icon = XApp.StatusIcon()
         self.icon.set_name("SBZ")
 
@@ -97,13 +97,17 @@ class Tray:
     def ResetSC(self, args, card, toggleinfx):
         #subprocess.call(executable="/usr/bin/virsh", args=["qemu:///system", "start","ResetSC"], shell=True)
         self.toggle_infx(args, card, toggleinfx)
-        subprocess.call(executable="sh", args=["pkexec sh -c 'echo 1 > /sys/bus/pci/devices/"+self.PCIID+"/remove; echo 1 > /sys/bus/pci/rescan'"], shell=True)
+        subprocess.call(executable="sh", args=["pkexec sh -c 'echo 1 > /sys/bus/pci/devices/"+self.PCIID.replace("_","\:")+"/remove; echo 1 > /sys/bus/pci/rescan'"], shell=True)
         time.sleep(3)
-        subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-sink alsa_output.pci-0000_06_00.0.analog-stereo"], shell=True)
-        subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-source alsa_input.pci-0000_06_00.0.analog-stereo"], shell=True)
+        subprocess.call(executable="sh", args=["pulseaudio -k"], shell=True)
+        subprocess.call(executable="sh", args=["pulseaudio -D"], shell=True)
+        #subprocess.call(executable="sh", args=["pacmd unload-module module-udev-detect && pacmd load-module module-udev-detect"], shell=True)
+        
+        subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-sink alsa_output.pci-"+self.PCIID+".analog-stereo"], shell=True)
+        subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-source alsa_input.pci-"+self.PCIID+".analog-stereo"], shell=True)
         subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","Front", 'on'], shell=True)
-        subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-sink alsa_output.pci-0000_06_00.0.analog-stereo"], shell=True)
-        subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-source alsa_input.pci-0000_06_00.0.analog-stereo"], shell=True)
+        subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-sink alsa_output.pci-"+self.PCIID+".analog-stereo"], shell=True)
+        subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-source alsa_input.pci-"+self.PCIID+".analog-stereo"], shell=True)
         if (self.MODE == HEADPHONES_MODE):
                 subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","'Output Select'", 'Headphone'], shell=True)
         elif (self.MODE == SPEAKERS_MODE):
@@ -129,16 +133,16 @@ class Tray:
             if (self.MODE == HEADPHONES_MODE):
                 subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","'Output Select'", 'Speakers'], shell=True)
                 subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","Front", 'on'], shell=True)
-                subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-sink alsa_output.pci-0000_06_00.0.analog-stereo"], shell=True)
-                subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-source alsa_input.pci-0000_06_00.0.analog-stereo"], shell=True)
+                subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-sink alsa_output.pci-"+self.PCIID+".analog-stereo"], shell=True)
+                subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-source alsa_input.pci-"+self.PCIID+".analog-stereo"], shell=True)
                 self.icon.set_icon_name("audio-speakers")
                 self.MODE=SPEAKERS_MODE
                 
             elif (self.MODE == SPEAKERS_MODE):
                 subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","'Output Select'", 'Headphone'], shell=True)
                 subprocess.call(executable="/usr/bin/amixer", args=[card, "sset","Front", 'on'], shell=True)
-                subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-sink alsa_output.pci-0000_06_00.0.analog-stereo"], shell=True)
-                subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-source alsa_input.pci-0000_06_00.0.analog-stereo"], shell=True)
+                subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-sink alsa_output.pci-"+self.PCIID.replace("\:","_")+".analog-stereo"], shell=True)
+                subprocess.call(executable="sh", args=["/usr/bin/pactl set-default-source alsa_input.pci-"+self.PCIID.replace("\:","_")+".analog-stereo"], shell=True)
                 
                 self.icon.set_icon_name("audio-headphones")
                 self.MODE=HEADPHONES_MODE
