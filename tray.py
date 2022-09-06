@@ -1,4 +1,6 @@
 #!/usr/bin/python3
+import gi
+gi.require_version('Gtk', '3.0')
 from packaging import version
 import time
 import subprocess
@@ -6,8 +8,8 @@ from gi.repository import Gtk, XApp
 from time import sleep
 import signal
 import sys
-import gi
-gi.require_version('Gtk', '3.0')
+
+
 #import gi
 
 #gi.require_version('Gtk', '4.0')
@@ -38,8 +40,8 @@ class Tray:
         card = subprocess.check_output(
             "aplay -l | grep Creative", shell=True).decode("UTF-8").strip().split(": ")[0]
         card = card[card.__len__()-1]
-        if "off" in str(subprocess.check_output("/usr/bin/amixer -c "+str(card)+" sget 'Enable InFX'", shell=True)):
-            subprocess.call(executable="/usr/bin/amixer", args=[card, "sset", "'Enable InFX'", 'toggle'], shell=True)
+        #if "off" in str(subprocess.check_output("/usr/bin/amixer -c "+str(card)+" sget 'Enable InFX'", shell=True)):
+        #    subprocess.call(executable="/usr/bin/amixer", args=[card, "sset", "'Enable InFX'", 'toggle'], shell=True)
         output = None
         try:
             output = subprocess.check_output(
