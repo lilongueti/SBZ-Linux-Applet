@@ -1,6 +1,3 @@
-#!/usr/bin/python3
-import os
-os.environ["GDK_BACKEND"] = "x11"
 import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('XApp', '1.0')
@@ -8,7 +5,6 @@ from packaging import version
 import time
 import subprocess
 from gi.repository import Gtk, XApp
-
 SPEAKERS_MODE = ("Speakers")
 HEADPHONES_MODE = ("Headphone")
 
@@ -63,7 +59,7 @@ class Tray:
         self.icon.set_tooltip_text("%s\n%s" % (
             "Creative Sound Blaster Z", self.MODE))
 
-        halndler_id = self.icon.connect("activate", self.switch, None, card)
+        halndler_id = self.icon.connect("activate", self.switch, card)
         menu = Gtk.Menu()
         InFX = "off" not in str(subprocess.check_output(
             "/usr/bin/amixer -c "+str(card)+" sget 'Enable InFX'", shell=True))
@@ -178,9 +174,7 @@ class Tray:
     def terminate(self, window=None, data=None):
         Gtk.main_quit()
 
-
-if __name__ == "__main__":
-
+def start():
     try:
         Tray()
         Gtk.main()
