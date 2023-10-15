@@ -1,19 +1,13 @@
 #!/usr/bin/python3
+import os
+os.environ["GDK_BACKEND"] = "x11"
 import gi
 gi.require_version('Gtk', '3.0')
+gi.require_version('XApp', '1.0')
 from packaging import version
 import time
 import subprocess
 from gi.repository import Gtk, XApp
-from time import sleep
-import signal
-import sys
-
-
-#import gi
-
-#gi.require_version('Gtk', '4.0')
-gi.require_version('XApp', '1.0')
 
 SPEAKERS_MODE = ("Speakers")
 HEADPHONES_MODE = ("Headphone")
@@ -69,11 +63,14 @@ class Tray:
         self.icon.set_tooltip_text("%s\n%s" % (
             "Creative Sound Blaster Z", self.MODE))
 
-        halndler_id = self.icon.connect("activate", self.switch, card)
-
+        halndler_id = self.icon.connect("activate", self.switch, None, card)
         menu = Gtk.Menu()
         InFX = "off" not in str(subprocess.check_output(
             "/usr/bin/amixer -c "+str(card)+" sget 'Enable InFX'", shell=True))
+        
+        SwitchOtput = Gtk.MenuItem(label="Switch output")
+        SwitchOtput.connect("activate", lambda _, card=card: self.switch(_,None, None, card))
+        
         ToggleInFX = Gtk.MenuItem(label="Toggle InFX (%s)" %
                                   ("ON" if InFX else "OFF"))
         ToggleInFX.connect("activate", self.toggle_infx, card, ToggleInFX)
@@ -88,6 +85,7 @@ class Tray:
         ResetSC.connect("activate", self.ResetSC, card, ToggleInFX)
         exit = Gtk.MenuItem(label="Exit")
         exit.connect("activate", self.terminate)
+        menu.append(SwitchOtput)
         menu.append(ToggleInFX)
         menu.append(ToggleOutFX)
         menu.append(ResetSC)
