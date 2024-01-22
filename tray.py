@@ -1,7 +1,6 @@
 #!/usr/bin/python
 import gi
 gi.require_version('Gtk', '3.0')
-gi.require_version('XApp', '1.0')
 from packaging import version
 import time
 import subprocess
@@ -52,6 +51,8 @@ class Tray:
             self.MODE = ("Unknown mode")
         subprocess.call(executable="/usr/bin/amixer",
                         args=[self.card, "sset", "Front", 'on'], shell=True)
+        subprocess.call(executable="/usr/bin/amixer",
+                            args=[self.card, "sset", "Front", '130dB'], shell=True)
         
     def left_click_event(self, status_icon):
         print("left click triggered")
@@ -127,6 +128,8 @@ class Tray:
                         "/usr/bin/pactl set-default-source alsa_input.pci-"+self.PCIID+".analog-stereo"], shell=True)
         subprocess.call(executable="/usr/bin/amixer",
                         args=[self.card, "sset", "Front", 'on'], shell=True)
+        subprocess.call(executable="/usr/bin/amixer",
+                            args=[self.card, "sset", "Front", '130dB'], shell=True)
         subprocess.call(executable="sh", args=[
                         "/usr/bin/pactl set-default-sink alsa_output.pci-"+self.PCIID+".analog-stereo"], shell=True)
         subprocess.call(executable="sh", args=[
@@ -155,6 +158,13 @@ class Tray:
             "/usr/bin/amixer -c "+str(self.card) + " sget 'Enable OutFX'", shell=True)) else "OFF"
         toggleoutfx.set_label("Toggle OutFX (%s)" % outfx)
 
+    def toggle_outfx(self, args, volume):
+        subprocess.call(executable="/usr/bin/amixer",
+                        args=[self.card, "sset", "'Front'", 'toggle'], shell=True)
+        outfx = "ON" if "off" not in str(subprocess.check_output(
+            "/usr/bin/amixer -c "+str(self.card) + " sget 'Enable OutFX'", shell=True)) else "OFF"
+        toggleoutfx.set_label("Toggle OutFX (%s)" % outfx)
+
     def switch(self):
 
         if (self.MODE == HEADPHONES_MODE):
@@ -162,6 +172,8 @@ class Tray:
                             args=[self.card, "sset", "'Output Select'", 'Speakers'], shell=True)
             subprocess.call(executable="/usr/bin/amixer",
                             args=[self.card, "sset", "Front", 'on'], shell=True)
+            subprocess.call(executable="/usr/bin/amixer",
+                            args=[self.card, "sset", "Front", '130dB'], shell=True)
             subprocess.call(executable="sh", args=[
                             "/usr/bin/pactl set-default-sink alsa_output.pci-"+self.PCIID+".analog-stereo"], shell=True)
             subprocess.call(executable="sh", args=[
@@ -174,6 +186,8 @@ class Tray:
                             args=[self.card, "sset", "'Output Select'", 'Headphone'], shell=True)
             subprocess.call(executable="/usr/bin/amixer",
                             args=[self.card, "sset", "Front", 'on'], shell=True)
+            subprocess.call(executable="/usr/bin/amixer",
+                            args=[self.card, "sset", "Front", '130dB'], shell=True)
             subprocess.call(executable="sh", args=[
                             "/usr/bin/pactl set-default-sink alsa_output.pci-"+self.PCIID.replace("\:", "_")+".analog-stereo"], shell=True)
             subprocess.call(executable="sh", args=[
